@@ -1,0 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+    background-color: rgb(18, 18, 19);
+}
+
+canvas {
+    border: 3px solid #898b8b;
+    box-shadow: 10px 10px 20px rgba(54, 54, 54, 0.3);
+}
+
+#Arkanoid {
+    background-color: #252427;
+    display: block;
+    margin: 0 auto;
+    margin-top: 50px;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.message-box {
+    background: #1e1e2f;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    color: #58e7bc;
+    font-family: 'Silkscreen', cursive;
+    box-shadow: 0 0 30px #58e7bc;
+    transform: scale(0.7);
+    animation: popIn 0.3s forwards;
+}
+
+@keyframes popIn {
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.message-box h2 {
+    font-size: 48px;
+    margin-bottom: 30px;
+}
+
+#restartBtn {
+    background: #58e7bc;
+    border: none;
+    color: #1e1e2f;
+    font-family: 'Silkscreen', cursive;
+    font-size: 24px;
+    padding: 10px 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+#restartBtn:hover {
+    background: #3cb39a;
+}
+
+#restartBtn:active {
+    transform: scale(0.95);
+}

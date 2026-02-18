@@ -7,15 +7,24 @@ const overlayTitle = document.getElementById("overlayTitle");
 const restartBtn = document.getElementById("restartBtn");
 let gameStartTime = performance.now();
 
+const GAME_STATE = {
+    MENU: "menu",
+    PLAYING: "playing",
+    PAUSED: "paused",
+    GAME_OVER: "gameover"
+};
+
+let gameState = GAME_STATE.MENU;
+
 CTX.font = "40px Silkscreen";
 
 const PADDLE_WIDTH = 100;
-const PADDLE_HEIGTH = 20;
+const PADDLE_HEIGHT = 20;
 
 const BRICK_ROW_COUNT = 12;
 const BRICK_COLUMN_COUNT = 7;
 let BRICK_WIDTH;
-const BRICK_HEIGTH = 30;
+const BRICK_HEIGHT = 30;
 const BRICK_PADDING = 5;
 const TOP_OFFSET = 90;
 
@@ -56,9 +65,31 @@ for (let a = 0; a < BRICK_COLUMN_COUNT; a++) {
     }
 }
 
-function showGameOverMessage(win = false) {
+function showStartMenu() {
+    gameState = GAME_STATE.MENU;
     paused = true;
-    overlayTitle.textContent = win ? "Win!" : "You lose";
+
+    overlayTitle.textContent = "ARKANOID";
+    restartBtn.textContent = "Start";
+
+    overlay.classList.remove("hidden");
+}
+
+function startGame() {
+    gameState = GAME_STATE.PLAYING;
+    paused = false;
+    gameStartTime = performance.now();
+
+    overlay.classList.add("hidden");
+}
+
+function showGameOverMessage(win = false) {
+    gameState = GAME_STATE.GAME_OVER;
+    paused = true;
+
+    overlayTitle.textContent = win ? "YOU WIN!" : "GAME OVER";
+    restartBtn.textContent = "Play again";
+
     overlay.classList.remove("hidden");
 }
 
@@ -68,7 +99,11 @@ function hideOverlay() {
 
 
 restartBtn.addEventListener("click", () => {
-    document.location.reload();
+    if (gameState === GAME_STATE.MENU) {
+        startGame();
+    } else {
+        document.location.reload();
+    }
 });
 
 function drawBricks() {
@@ -78,7 +113,7 @@ function drawBricks() {
 
                 const BRICK_X = b * (BRICK_WIDTH + BRICK_PADDING) + BRICK_PADDING;
 
-                const BRICK_Y = a * (BRICK_HEIGTH + BRICK_PADDING) + TOP_OFFSET;
+                const BRICK_Y = a * (BRICK_HEIGHT + BRICK_PADDING) + TOP_OFFSET;
                 BRICKS[a][b].x = BRICK_X;
                 BRICKS[a][b].y = BRICK_Y;
 
@@ -91,7 +126,7 @@ function drawBricks() {
                 }
 
                 CTX.beginPath();
-                CTX.rect(BRICK_X, BRICK_Y, BRICK_WIDTH, BRICK_HEIGTH);
+                CTX.rect(BRICK_X, BRICK_Y, BRICK_WIDTH, BRICK_HEIGHT);
                 CTX.fill();
                 CTX.closePath();
             }
@@ -110,7 +145,7 @@ function drawBall() {
 function drawPaddle() {
     CTX.fillStyle = "#58e7bc";
     CTX.beginPath();
-    CTX.rect(paddleX, CANVAS_NODE.height - 100, PADDLE_WIDTH, PADDLE_HEIGTH);
+    CTX.rect(paddleX, CANVAS_NODE.height - 100, PADDLE_WIDTH, PADDLE_HEIGHT);
     CTX.fill();
     CTX.closePath();
 }
@@ -132,7 +167,7 @@ function detectCollision() {
             if (brick.status !== 1) continue;
 
             const closestX = Math.max(brick.x, Math.min(ballX, brick.x + BRICK_WIDTH));
-            const closestY = Math.max(brick.y, Math.min(ballY, brick.y + BRICK_HEIGTH));
+            const closestY = Math.max(brick.y, Math.min(ballY, brick.y + BRICK_HEIGHT));
 
             const dx = ballX - closestX;
             const dy = ballY - closestY;
@@ -166,7 +201,7 @@ function detectCollision() {
                 const leftDist = ballX - brick.x;
                 const rightDist = brick.x + BRICK_WIDTH - ballX;
                 const topDist = ballY - brick.y;
-                const bottomDist = brick.y + BRICK_HEIGTH - ballY;
+                const bottomDist = brick.y + BRICK_HEIGHT - ballY;
 
                 const minX = Math.min(leftDist, rightDist);
                 const minY = Math.min(topDist, bottomDist);
@@ -183,7 +218,7 @@ function detectCollision() {
                     if (topDist < bottomDist) {
                         ballY = brick.y - BALL_RADIUS;
                     } else {
-                        ballY = brick.y + BRICK_HEIGTH + BALL_RADIUS;
+                        ballY = brick.y + BRICK_HEIGHT + BALL_RADIUS;
                     }
                 } else {
                     dX = -dX;
@@ -198,14 +233,22 @@ function detectCollision() {
 
 document.addEventListener("mousemove", mouseMove);
 document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
+    if (e.key !== "Escape") return;
+
+    if (gameState === GAME_STATE.PLAYING) {
         e.preventDefault();
-        paused = !paused;
+        paused = true;
+        gameState = GAME_STATE.PAUSED;
+    } 
+    else if (gameState === GAME_STATE.PAUSED) {
+        e.preventDefault();
+        paused = false;
+        gameState = GAME_STATE.PLAYING;
     }
 });
 
 function mouseMove(e) {
-    if (paused) return;
+    if (paused || gameState !== GAME_STATE.PLAYING) return;
 
     const RELATIVE_X = e.clientX - CANVAS_NODE.offsetLeft;
     if (RELATIVE_X > 0 && RELATIVE_X < CANVAS_NODE.width) {
@@ -244,7 +287,7 @@ function draw() {
         }
 
         const PADDLE_TOP = CANVAS_NODE.height - 100;
-        const PADDLE_BOTTOM = PADDLE_TOP + PADDLE_HEIGTH;
+        const PADDLE_BOTTOM = PADDLE_TOP + PADDLE_HEIGHT;
 
         if (dY > 0) {
             if (ballY + BALL_RADIUS >= PADDLE_TOP && ballY - BALL_RADIUS <= PADDLE_BOTTOM) {
@@ -290,4 +333,5 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
+showStartMenu();
 draw();
